@@ -1,0 +1,15 @@
+[package]
+name = "bivia"
+version = "1.0.0"
+edition = "2021"
+description = "Rust SDK for the Bivia calibrated decision engine"
+license = "LicenseRef-Proprietary"
+license-file = "LICENSE"
+repository = "https://github.com/articul8/bivia-rust"
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+zeroize = "=1.8.1"
