@@ -304,7 +304,7 @@ pub struct DataDecisionParams {
 // ── Response types ──────────────────────────────────────────────
 
 /// Verification status from deep mode.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct Verification {
     pub performed: bool,
     pub result: String,
@@ -319,7 +319,7 @@ pub struct EvidenceSpan {
 }
 
 /// Evidence supporting a decision.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct Evidence {
     #[serde(default)]
     pub spans: Vec<EvidenceSpan>,
@@ -477,22 +477,34 @@ pub struct GroundRegion {
 }
 
 /// Response for the ground endpoint.
+///
+/// The live reply omits the decision envelope (`status`, `mode`, `thought`,
+/// `verification`, `evidence`, `latency_ms`, `model`). Those fields stay on the
+/// type and default to empty values when absent. Other decision types still
+/// require them.
 #[derive(Debug, Clone, Deserialize)]
 pub struct GroundDecision {
     #[serde(rename = "type")]
     pub decision_type: String,
     #[serde(default)]
     pub value: Vec<GroundRegion>,
+    #[serde(default)]
     pub status: String,
     #[serde(default)]
     pub abstain_reason: Option<String>,
+    #[serde(default)]
     pub mode: String,
+    #[serde(default)]
     pub thought: bool,
     #[serde(default)]
     pub grounded: Option<bool>,
+    #[serde(default)]
     pub verification: Verification,
+    #[serde(default)]
     pub evidence: Evidence,
+    #[serde(default)]
     pub latency_ms: f64,
+    #[serde(default)]
     pub model: String,
     #[serde(default)]
     pub input_tokens: Option<i64>,

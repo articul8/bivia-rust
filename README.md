@@ -26,10 +26,10 @@ export A8_API_KEY="your-api-key"
 use bivia::{Client, types::BooleanParams};
 
 #[tokio::main]
-async fn main() -> Result<(), bivia::errors::BiviaError> {
-    let client = Client::from_env()?;
+async fn main() -> Result<(), bivia::BiviaError> {
+    let client = Client::new()?;
 
-    let result = client.decisions().boolean(&BooleanParams {
+    let result = client.decisions().boolean(BooleanParams {
         question: "Is the sky blue?".into(),
         state: Some("The sky is clear today.".into()),
         ..Default::default()
@@ -46,10 +46,10 @@ async fn main() -> Result<(), bivia::errors::BiviaError> {
 use bivia::{Client, types::ChoiceParams};
 
 #[tokio::main]
-async fn main() -> Result<(), bivia::errors::BiviaError> {
-    let client = Client::from_env()?;
+async fn main() -> Result<(), bivia::BiviaError> {
+    let client = Client::new()?;
 
-    let result = client.decisions().choice(&ChoiceParams {
+    let result = client.decisions().choice(ChoiceParams {
         question: "What is the primary color?".into(),
         choices: vec!["red".into(), "green".into(), "blue".into()],
         state: Some("The object is a fire truck.".into()),
@@ -67,13 +67,13 @@ async fn main() -> Result<(), bivia::errors::BiviaError> {
 use bivia::{Client, types::ScoreParams};
 
 #[tokio::main]
-async fn main() -> Result<(), bivia::errors::BiviaError> {
-    let client = Client::from_env()?;
+async fn main() -> Result<(), bivia::BiviaError> {
+    let client = Client::new()?;
 
-    let result = client.decisions().score(&ScoreParams {
+    let result = client.decisions().score(ScoreParams {
         question: "Rate the sentiment".into(),
         state: Some("I love this product!".into()),
-        range: Some(vec![1.0, 5.0]),
+        range: Some([1.0, 5.0]),
         ..Default::default()
     }).await?;
 
@@ -85,13 +85,13 @@ async fn main() -> Result<(), bivia::errors::BiviaError> {
 ### Multi-select
 
 ```rust,no_run
-use bivia::{Client, types::MultiSelectParams};
+use bivia::{Client, types::SetParams};
 
 #[tokio::main]
-async fn main() -> Result<(), bivia::errors::BiviaError> {
-    let client = Client::from_env()?;
+async fn main() -> Result<(), bivia::BiviaError> {
+    let client = Client::new()?;
 
-    let result = client.decisions().multi_select(&MultiSelectParams {
+    let result = client.decisions().multi_select(SetParams {
         question: "Which topics are discussed?".into(),
         options: vec!["sports".into(), "politics".into(), "weather".into()],
         state: Some("The game was rained out today.".into()),
@@ -109,10 +109,10 @@ async fn main() -> Result<(), bivia::errors::BiviaError> {
 use bivia::{Client, types::{GroundParams, ImageRef}};
 
 #[tokio::main]
-async fn main() -> Result<(), bivia::errors::BiviaError> {
-    let client = Client::from_env()?;
+async fn main() -> Result<(), bivia::BiviaError> {
+    let client = Client::new()?;
 
-    let result = client.grounding().image(&GroundParams {
+    let result = client.grounding().image(GroundParams {
         question: Some("Find all cars".into()),
         images: Some(vec![ImageRef {
             url: Some("https://example.com/photo.jpg".into()),
@@ -121,8 +121,8 @@ async fn main() -> Result<(), bivia::errors::BiviaError> {
         ..Default::default()
     }).await?;
 
-    for region in result.value.unwrap_or_default() {
-        println!("{}: {:?}", region.label, region.bbox);
+    for region in result.value {
+        println!("{}: {:?}", region.label, region.box_coords);
     }
     Ok(())
 }
@@ -131,20 +131,21 @@ async fn main() -> Result<(), bivia::errors::BiviaError> {
 ### Batch (SystemOne)
 
 ```rust,no_run
-use bivia::{Client, types::BatchParams};
+use bivia::{Client, types::{BatchParams, BatchQuestion}};
 use std::collections::HashMap;
 
 #[tokio::main]
-async fn main() -> Result<(), bivia::errors::BiviaError> {
-    let client = Client::from_env()?;
+async fn main() -> Result<(), bivia::BiviaError> {
+    let client = Client::new()?;
 
     let mut questions = HashMap::new();
-    questions.insert("sentiment".to_string(), serde_json::json!({
-        "type": "boolean",
-        "question": "Is this positive?"
-    }));
+    questions.insert("sentiment".to_string(), BatchQuestion {
+        question_type: Some("boolean".into()),
+        question: Some("Is this positive?".into()),
+        ..Default::default()
+    });
 
-    let result = client.batch().create(&BatchParams {
+    let result = client.batch().create(BatchParams {
         state: Some("I love Rust!".into()),
         questions: Some(questions),
         ..Default::default()
@@ -161,8 +162,8 @@ async fn main() -> Result<(), bivia::errors::BiviaError> {
 use bivia::Client;
 
 #[tokio::main]
-async fn main() -> Result<(), bivia::errors::BiviaError> {
-    let client = Client::from_env()?;
+async fn main() -> Result<(), bivia::BiviaError> {
+    let client = Client::new()?;
     let models = client.models().list().await?;
 
     for m in models.models {
@@ -179,12 +180,13 @@ use bivia::Client;
 use std::time::Duration;
 
 #[tokio::main]
-async fn main() -> Result<(), bivia::errors::BiviaError> {
-    let client = Client::builder("your-api-key")
+async fn main() -> Result<(), bivia::BiviaError> {
+    let client = Client::builder()
+        .api_key("your-api-key")
         .base_url("https://custom.api.example.com/bivia")
         .timeout(Duration::from_secs(60))
         .max_retries(3)
-        .build()?;
+        .build();
 
     let caps = client.models().capabilities().await?;
     println!("{:?}", caps);
